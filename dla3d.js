@@ -3,12 +3,15 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 let loop;
 
+// DLA
+// 3次元配列で管理
 class DLA {
   constructor(size) {
     this.setSize(size);
     this.finFlag = false;
     this.current = false;
   }
+  // 3次元配列のサイズ変更
   setSize(size) {
     this.size = size;
     this.margin = Math.floor(size / 2);
@@ -18,6 +21,7 @@ class DLA {
       )
     );
   }
+  // 初期化
   clear() {
     this.data = new Array(this.size).fill(0).map(
       () => new Array(this.size).fill(0).map(
@@ -27,15 +31,19 @@ class DLA {
     this.finFlag = false;
     this.current = false;
   }
+  // 手動でブロックを配置(初期の種用)
   manualFix(x, y, z) {
     this.data[x + this.margin][y + this.margin][z + this.margin] = true;
   }
+  // 固定
   fix() {
     this.data[this.current[0]][this.current[1]][this.current[2]] = true;
   }
+  // 範囲内の乱数発生
   rand() {
     return Math.floor(Math.random() * this.data.length);
   }
+  // 新規の種を生成
   generate() {
     let direction = Math.floor(Math.random() * 6);
     switch (direction) {
@@ -59,6 +67,7 @@ class DLA {
         break;
     }
   }
+  // 移動
   walk() {
     let [x, y, z] = this.current;
     let direction = Math.floor(Math.random() * 6);
@@ -90,6 +99,7 @@ class DLA {
     }
     this.current = [x, y, z];
   }
+  // 接触判定
   check() {
     let [x, y, z] = this.current;
     return (
@@ -101,6 +111,10 @@ class DLA {
       (this.data[x + 1]?.[y][z])
     );
   }
+  // 1ステップ進める
+  // 高速化のために移動は最大100回行う
+  // 移動後に接触したら固定
+  // 移動が終了(固定)していたら新規で種を生成
   step() {
     if (this.finFlag) return false;
     if (this.current === false) {
@@ -130,10 +144,12 @@ class DLA {
 }
 
 
+// Three.js周りの管理
 class ThreeManager {
   constructor(canvas, size) {
     this.size = size;
     // clock
+    // これで時間管理することで、FPSによらず一定の速度で動作するようになる
     this.clock = new THREE.Clock();
     // DLA
     this.dla = new DLA(size);
@@ -144,7 +160,7 @@ class ThreeManager {
     this.edge = new THREE.LineSegments(this.edgeGeometry, this.edgeMaterial);
     this.cubes = [];
 
-    // Three.js init
+    // Three.js の初期設定
     this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -155,22 +171,23 @@ class ThreeManager {
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    // OrbitControls
+    // OrbitControls (マウスでカメラを回転)
     this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
     this.orbitControls.enableDamping = true;
     this.orbitControls.dampingFactor = 0.2;
     this.orbitControls.minDistance = 2;
     this.orbitControls.maxDistance = Infinity;
-    // Lights
+    // Lights (照明)
     this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     this.scene.add(this.ambientLight);
     this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     this.scene.add(this.directionalLight);
-    // Group
+    // Group (DLA全体のオブジェクト。固定した種はここに入れる)
     this.group = new THREE.Group();
     this.scene.add(this.group);
   }
 
+  // 空間のサイズ変更
   setSize(size) {
     this.size = size;
     this.dla.setSize(size);
@@ -178,6 +195,7 @@ class ThreeManager {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
+  // メインループ
   loop() {
     loop = requestAnimationFrame(() => this.loop());
     let res = this.dla.step();
@@ -189,6 +207,7 @@ class ThreeManager {
     this.renderer.render(this.scene, this.camera);
   }
 
+  // 種を固定するときの処理
   fix(x, y, z) {
     let mesh = new THREE.Mesh(this.boxGeometry, this.boxMaterial);
     mesh.add(this.edge.clone())
@@ -197,11 +216,13 @@ class ThreeManager {
     this.cubes.push(mesh);
   }
 
+  // 手動で種を固定するときの処理
   manualFix(x, y, z) {
     this.dla.manualFix(x, y, z);
     this.fix(x, y, z);
   }
 
+  // リセット
   clear() {
     cancelAnimationFrame(loop);
     setTimeout(() => {
@@ -215,6 +236,7 @@ class ThreeManager {
     }, 200);
   }
 
+  // ウィンドウサイズ変更時の処理
   resize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
@@ -224,16 +246,19 @@ class ThreeManager {
 
 }
 
-
+// 空間サイズ
 let size = +document.querySelector('#selectSize').value;
 
+// Three.jsの管理
 const canvas = document.getElementById('canvas');
 const threeManager = new ThreeManager(canvas, size);
 threeManager.manualFix(0, 0, 0);
 threeManager.loop();
 
+// リサイズ時の処理
 window.addEventListener("resize", () => threeManager.resize());
 
+// リセットボタン
 document.querySelector('#restartButton').addEventListener('click', () => {
   threeManager.clear();
 });
