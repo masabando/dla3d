@@ -139,7 +139,7 @@ class ThreeManager {
     this.dla = new DLA(size);
     this.boxMaterial = new THREE.MeshNormalMaterial();
     this.boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-    this.edgeMaterial = new THREE.LineBasicMaterial({ color: 0x444444 });
+    this.edgeMaterial = new THREE.LineBasicMaterial({ color: 0x777777 });
     this.edgeGeometry = new THREE.EdgesGeometry(this.boxGeometry);
     this.edge = new THREE.LineSegments(this.edgeGeometry, this.edgeMaterial);
     this.cubes = [];
