@@ -133,10 +133,15 @@ class DLA {
 class ThreeManager {
   constructor(canvas, size) {
     this.size = size;
+    // clock
+    this.clock = new THREE.Clock();
     // DLA
     this.dla = new DLA(size);
     this.boxMaterial = new THREE.MeshNormalMaterial();
     this.boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+    this.edgeMaterial = new THREE.LineBasicMaterial({ color: 0x444444 });
+    this.edgeGeometry = new THREE.EdgesGeometry(this.boxGeometry);
+    this.edge = new THREE.LineSegments(this.edgeGeometry, this.edgeMaterial);
     this.cubes = [];
 
     // Three.js init
@@ -161,6 +166,9 @@ class ThreeManager {
     this.scene.add(this.ambientLight);
     this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
     this.scene.add(this.directionalLight);
+    // Group
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
   }
 
   setSize(size) {
@@ -176,14 +184,16 @@ class ThreeManager {
     if (res) {
       this.fix(...(res.map(p => p - this.dla.margin)))
     }
+    this.group.rotation.y -= this.clock.getDelta() * 0.5;
     this.orbitControls.update();
     this.renderer.render(this.scene, this.camera);
   }
 
   fix(x, y, z) {
     let mesh = new THREE.Mesh(this.boxGeometry, this.boxMaterial);
+    mesh.add(this.edge.clone())
     mesh.position.set(x, y, z);
-    this.scene.add(mesh);
+    this.group.add(mesh);
     this.cubes.push(mesh);
   }
 
