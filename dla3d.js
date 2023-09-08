@@ -23,15 +23,13 @@ class DLA {
   }
   // 初期化
   clear() {
+    this.data = new Array(this.size).fill(0).map(
+      () => new Array(this.size).fill(0).map(
+        () => new Array(this.size).fill(false)
+      )
+    );
     this.finFlag = false;
     this.current = false;
-    setTimeout(() => {
-      this.data = new Array(this.size).fill(0).map(
-        () => new Array(this.size).fill(0).map(
-          () => new Array(this.size).fill(false)
-        )
-      );
-    }, 1000);
   }
   // 手動でブロックを配置(初期の種用)
   manualFix(x, y, z) {
@@ -166,7 +164,7 @@ class ThreeManager {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.camera.position.set(size*0.3, size*0.3, size*0.9);
+    this.camera.position.set(size * 0.3, size * 0.3, size * 0.9);
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true
@@ -230,12 +228,15 @@ class ThreeManager {
     setTimeout(() => {
       let size = +document.querySelector('#selectSize').value;
       this.dla.clear();
-      this.cubes.forEach(cube => this.scene.remove(cube));
+      this.cubes.forEach(cube => {
+        this.scene.remove(cube);
+        this.group.remove(cube);
+      });
       this.cubes = [];
       this.setSize(size);
       this.manualFix(0, 0, 0);
-      this.loop()
-    }, 200);
+      this.loop();
+    }, 600);
   }
 
   // ウィンドウサイズ変更時の処理
