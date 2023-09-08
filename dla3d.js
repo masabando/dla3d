@@ -23,13 +23,15 @@ class DLA {
   }
   // 初期化
   clear() {
-    this.data = new Array(this.size).fill(0).map(
-      () => new Array(this.size).fill(0).map(
-        () => new Array(this.size).fill(false)
-      )
-    );
     this.finFlag = false;
     this.current = false;
+    setTimeout(() => {
+      this.data = new Array(this.size).fill(0).map(
+        () => new Array(this.size).fill(0).map(
+          () => new Array(this.size).fill(false)
+        )
+      );
+    }, 1000);
   }
   // 手動でブロックを配置(初期の種用)
   manualFix(x, y, z) {
